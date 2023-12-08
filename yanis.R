@@ -13,7 +13,7 @@ library(RItools)
 library(plyr)
 library(rcbalance)
 library(ggplot2)
-source('utility.R') # for summarize_match function
+library(grf)
 
 ### PREPROCESSING ###
 
@@ -37,6 +37,7 @@ sum(is.na(data$VIQ))
 sum(is.na(data$PIQ))
 
 # get rid of rows with na values in FIQ, VIQ and PIQ
+cat("Number of rows before cleaning: ", nrow(data), "\n")
 data <- data[!is.na(data$FIQ),]
 data <- data[!is.na(data$VIQ),]
 data <- data[!is.na(data$PIQ),]
@@ -46,7 +47,10 @@ data <- data[data$PIQ != -9999,]
 data <- data[data$AGE_AT_SCAN != -9999,]
 data <- data[data$HANDEDNESS_CATEGORY != -9999,]
 data <- data[data$CURRENT_MED_STATUS != -9999,]
-cat("Number of rows: ", nrow(data), "\n")
+cols<- c("Z", "FIQ", "VIQ", "PIQ", "SEX", "AGE_AT_SCAN", "HANDEDNESS_CATEGORY", "CURRENT_MED_STATUS")
+# delete all the rows with na values in the columns of interest
+data <- data[complete.cases(data[,cols]),]
+cat("Number of rows after cleaning: ", nrow(data), "\n")
 
 # Keep only the columns where we have MRI data
 data <- data[!is.na(data$compressed_2_1),]
@@ -164,6 +168,7 @@ CI
 
 # PART A 
 # Problem 1
+data_covs <- data[, cols_covariates]
 data_covs$Z <- as.numeric(data_covs$Z)-1
 xbal <- xBalance(Z ~ ., data=data_covs)
 print(xbal)
@@ -193,10 +198,22 @@ ggplot(data_covs, aes(x=prop, fill=factor(Z))) + geom_density(alpha=0.5) + labs(
 # Mahalanobis matching
 colnames(data_covs)
 covariates_cols <- c("FIQ", "VIQ", "PIQ", "SEX", "AGE_AT_SCAN", "HANDEDNESS_CATEGORY", "CURRENT_MED_STATUS", cols_mri)
-data_covs$HANDEDNESS_CATEGORY <- as.numeric(data_covs$HANDEDNESS_CATEGORY)-1
-data_covs$CURRENT_MED_STATUS <- as.numeric(data_covs$CURRENT_MED_STATUS)-1
+data_covs$HANDEDNESS_CATEGORY <- as.numeric(factor(data_covs$HANDEDNESS_CATEGORY))-1
+data_covs$CURRENT_MED_STATUS <- as.numeric(factor(data_covs$CURRENT_MED_STATUS))-1
+# Count the number of missing values in each column
+for (col in covariates_cols) {
+  cat(col, ": ", sum(is.na(data_covs[,col])), "\n")
+}
+sum(is.na(data_covs[,"prop"]))
+ncol(data_covs)
+nrow(data_covs)
 mat.1 <- smahal(data_covs$Z, data_covs[,covariates_cols])
-pairmatch.1 <- pairmatch(mat.1, data=data_covs) # BUG HERE
+# get size of matrix
+dim(mat.1)
+# check no na or inf in matrix
+sum(is.na(mat.1))
+sum(is.infinite(mat.1))
+pairmatch.1 <- pairmatch(mat.1, data=data_covs) # BUG HERE (probably because of the missing values in the covariates)
 
 summarize.1 <- summarize.match(data_covs, pairmatch.1)
 print(pairmatch.1, grouped = TRUE)
