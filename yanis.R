@@ -227,16 +227,16 @@ mean(abs(summarize.1$prop.0 - summarize.1$prop.1))
 max(abs(summarize.1$prop.0 - summarize.1$prop.1))
 
 # Problem 2.2
-mat.2 <- addcaliper(mat.1, z=dynarski$zb, p=dynarski$prop, caliper=0.1)
-pairmatch.2 <- pairmatch(mat.2, data=dynarski)
+mat.2 <- addcaliper(mat.1, z=data_covs$Z, p=data_covs$prop, caliper=0.1)
+pairmatch.2 <- pairmatch(mat.2, data=data_covs)
 which(pairmatch.2 != pairmatch.1)
-summarize.2 <- summarize.match(dynarski, pairmatch.2)
-plot(xBalance(zb ~ . -1, strata=list(unstrat=NULL, ms.2=~pairmatch.2),data=dynarski),ggplot = TRUE)
+summarize.2 <- summarize.match(data_covs, pairmatch.2)
+plot(xBalance(Z ~ . -1, strata=list(unstrat=NULL, ms.2=~pairmatch.2),data=data_covs),ggplot = TRUE)
 
 ## comparing (1) and (2)
 par(mfrow=c(1,2))
-plot(xBalance(zb ~ . -1, strata=list(unstrat=NULL, ms.2=~pairmatch.1),data=dynarski),ggplot = TRUE)
-plot(xBalance(zb ~ . -1, strata=list(unstrat=NULL, ms.2=~pairmatch.2),data=dynarski),ggplot = TRUE)
+plot(xBalance(Z ~ . -1, strata=list(unstrat=NULL, ms.2=~pairmatch.1),data=data_covs),ggplot = TRUE)
+plot(xBalance(Z ~ . -1, strata=list(unstrat=NULL, ms.2=~pairmatch.2),data=data_covs),ggplot = TRUE)
 
 
 # Problem 2.3
@@ -251,18 +251,18 @@ max(abs(summarize.2$prop.0 - summarize.2$prop.1))
 
 # Part C 
 # Problem 1.1
-mat.3 <- addcaliper(mat.2, z=dynarski$zb, p=dynarski$prop, caliper=0.1)
-pairmatch.3 <- pairmatch(mat.3, data=dynarski, controls=5)
+mat.3 <- addcaliper(mat.2, z=data_covs$Z, p=data_covs$prop, caliper=0.1)
+pairmatch.3 <- pairmatch(mat.3, data=data_covs, controls=5)
 which(pairmatch.3 != pairmatch.2)
-summarize.3 <- summarize.match(dynarski, pairmatch.3)
-plot(xBalance(zb ~ . -1, strata=list(unstrat=NULL, ms.2=~pairmatch.3),data=dynarski),ggplot = TRUE)
+summarize.3 <- summarize.match(data_covs, pairmatch.3)
+plot(xBalance(Z ~ . -1, strata=list(unstrat=NULL, ms.2=~pairmatch.3),data=data_covs),ggplot = TRUE)
 
 # Problem 1.2
-mat.4 <- addalmostexact(mat.3, z=dynarski$zb, f=dynarski$edm, mult=5)
-pairmatch.4 <- pairmatch(mat.4, data=dynarski, controls=5)
+mat.4 <- addalmostexact(mat.3, z=data_covs$Z, f=data_covs$edm, mult=5)
+pairmatch.4 <- pairmatch(mat.4, data=data_covs, controls=5)
 which(pairmatch.4 != pairmatch.3)
-summarize.4 <- summarize.match(dynarski, pairmatch.4)
-plot(xBalance(zb ~ . -1, strata=list(unstrat=NULL, ms.2=~pairmatch.4),data=dynarski),ggplot = TRUE)
+summarize.4 <- summarize.match(data_covs, pairmatch.4)
+plot(xBalance(Z ~ . -1, strata=list(unstrat=NULL, ms.2=~pairmatch.4),data=data_covs),ggplot = TRUE)
 
 # Problem 1.3
 # Did that last operation improve the matching?
@@ -270,11 +270,11 @@ mean(abs(summarize.4$prop.0 - summarize.4$prop.1))
 max(abs(summarize.4$prop.0 - summarize.4$prop.1))
 
 # Problem 2.1
-mat.5 <- addcaliper(mat.2, z=dynarski$zb, p=dynarski$prop, caliper=0.1)
-pairmatch.5 <- pairmatch(mat.5, data=dynarski, controls=15)
+mat.5 <- addcaliper(mat.2, z=data_covs$Z, p=data_covs$prop, caliper=0.1)
+pairmatch.5 <- pairmatch(mat.5, data=data_covs, controls=15)
 which(pairmatch.5 != pairmatch.2)
-summarize.5 <- summarize.match(dynarski, pairmatch.5)
-plot(xBalance(zb ~ . -1, strata=list(unstrat=NULL, ms.2=~pairmatch.5),data=dynarski),ggplot = TRUE)
+summarize.5 <- summarize.match(data_covs, pairmatch.5)
+plot(xBalance(Z ~ . -1, strata=list(unstrat=NULL, ms.2=~pairmatch.5),data=data_covs),ggplot = TRUE)
 
 
 
