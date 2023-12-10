@@ -1,4 +1,3 @@
-
 ### SETTING UP THE ENVIR ONMENT ###
 setwd("/Users/yanis/Documents/Stanford/STATS 209/Project/")
 getwd()
@@ -14,6 +13,8 @@ library(plyr)
 library(rcbalance)
 library(ggplot2)
 library(grf)
+
+source('utility.R') # for summarize_match function
 
 ### PREPROCESSING ###
 
@@ -164,23 +165,18 @@ CI <- c(tau - 1.96*sqrt(var), tau + 1.96*sqrt(var))
 CI
 
 
-### TODO ###
+### PROPENSITY SCORE MATCHING ###
 
-# PART A 
-# Problem 1
+# Analysis of the covariates
 data_covs <- data[, cols_covariates]
 data_covs$Z <- as.numeric(data_covs$Z)-1
 xbal <- xBalance(Z ~ ., data=data_covs)
 print(xbal)
-
-# Problem 2
 par(mfrow=c(1,1))
 ggplot(data_covs, aes(x=FIQ, fill=factor(Z))) + geom_histogram(alpha=0.5, position="identity", bins=20) + labs(title="FIQ", x="FIQ", y="Count") + scale_fill_discrete(name="Treatment")
 ggplot(data_covs, aes(x=PIQ, fill=factor(Z))) + geom_histogram(alpha=0.5, position="identity", bins=20) + labs(title="PIQ", x="PIQ", y="Count") + scale_fill_discrete(name="Treatment")
 
-
-# Problem 3
-# Propensity score model
+# Compute propensity score
 formula_covs <- Z ~ SEX + AGE_AT_SCAN + HANDEDNESS_CATEGORY + CURRENT_MED_STATUS + compressed_3_1 + compressed_3_2 + compressed_3_3
 ps <- glm(formula_covs, data=data_covs, family=binomial())
 data_covs$prop <- ps$fitted.values
@@ -190,13 +186,10 @@ par(mfrow=c(1,1))
 hist(data_covs$prop[data_covs$Z==1], main="Propensity Score", xlab="Propensity Score", freq=FALSE, col="black")
 hist(data_covs$prop[data_covs$Z==0], add=TRUE, freq=FALSE, col="red", alpha=0.5)
 legend("topright", c("Treated","Control"), fill=c("black","red"), cex=2)
-
 # same plot with ggplot2 density
 ggplot(data_covs, aes(x=prop, fill=factor(Z))) + geom_density(alpha=0.5) + labs(title="Propensity Score", x="Propensity Score", y="Density") + scale_fill_discrete(name="Treatment")
 
-# Part B 
-# Problem 1
-# Mahalanobis matching
+# Matching on the propensity score
 data_covs <- na.omit(data_covs)
 mat.1 <- match_on(formula_covs, data=data_covs)
 pairmatch.1 <- pairmatch(mat.1, data=data_covs)
@@ -205,62 +198,114 @@ print(pairmatch.1, grouped = TRUE)
 formula_plot <- Z ~ SEX + AGE_AT_SCAN + HANDEDNESS_CATEGORY + CURRENT_MED_STATUS + compressed_3_1 + compressed_3_2 + compressed_3_3 -1
 plot(xBalance(formula_plot,strata=list(unstrat=NULL, ms.2=~pairmatch.1), data=data_covs),ggplot = TRUE)
 
-
-# Problem 2.1
 # Average absolute difference in propensity scores within matched pairs
 mean(abs(summarize.1$prop.0 - summarize.1$prop.1))
 # Maximum absolute difference in propensity score
 max(abs(summarize.1$prop.0 - summarize.1$prop.1))
 
-# Problem 2.2
+# Matching on the propensity score with a caliper
 mat.2 <- addcaliper(mat.1, z=data_covs$Z, p=data_covs$prop, caliper=0.1)
 pairmatch.2 <- pairmatch(mat.2, data=data_covs)
-which(pairmatch.2 != pairmatch.1)
 summarize.2 <- summarize.match(data_covs, pairmatch.2)
-plot(xBalance(Z ~ . -1, strata=list(unstrat=NULL, ms.2=~pairmatch.2),data=data_covs),ggplot = TRUE)
+plot(xBalance(formula_plot, strata=list(unstrat=NULL, ms.2=~pairmatch.2),data=data_covs),ggplot = TRUE)
 
-## comparing (1) and (2)
+## Comparing (1) and (2)
 par(mfrow=c(1,2))
-plot(xBalance(Z ~ . -1, strata=list(unstrat=NULL, ms.2=~pairmatch.1),data=data_covs),ggplot = TRUE)
-plot(xBalance(Z ~ . -1, strata=list(unstrat=NULL, ms.2=~pairmatch.2),data=data_covs),ggplot = TRUE)
-
-
-# Problem 2.3
-# Average absolute difference in propensity scores within matched pairs
+plot(xBalance(formula_plot, strata=list(unstrat=NULL, ms.2=~pairmatch.1),data=data_covs),ggplot = TRUE)
+plot(xBalance(formula_plot, strata=list(unstrat=NULL, ms.2=~pairmatch.2),data=data_covs),ggplot = TRUE)
+# Average absolute difference in propensity scores within caliper-matched pairs
 mean(abs(summarize.2$prop.0 - summarize.2$prop.1))
 # Maximum absolute difference in propensity score
 max(abs(summarize.2$prop.0 - summarize.2$prop.1))
 
-# Problem 3
-# What do you think about these two matched sets? Do you think that matching was successful?
 
-
-# Part C 
-# Problem 1.1
-mat.3 <- addcaliper(mat.2, z=data_covs$Z, p=data_covs$prop, caliper=0.1)
-pairmatch.3 <- pairmatch(mat.3, data=data_covs, controls=5)
-which(pairmatch.3 != pairmatch.2)
+# Matching on the propensity score with a caliper and a ratio
+mat.3 <- addalmostexact(mat.2, z=data_covs$Z, f=data_covs$SEX, mult=10)
+pairmatch.3 <- pairmatch(mat.3, data=data_covs)
 summarize.3 <- summarize.match(data_covs, pairmatch.3)
-plot(xBalance(Z ~ . -1, strata=list(unstrat=NULL, ms.2=~pairmatch.3),data=data_covs),ggplot = TRUE)
+plot(xBalance(formula_plot, strata=list(unstrat=NULL, ms.2=~pairmatch.3),data=data_covs),ggplot = TRUE)
 
-# Problem 1.2
-mat.4 <- addalmostexact(mat.3, z=data_covs$Z, f=data_covs$edm, mult=5)
-pairmatch.4 <- pairmatch(mat.4, data=data_covs, controls=5)
-which(pairmatch.4 != pairmatch.3)
-summarize.4 <- summarize.match(data_covs, pairmatch.4)
-plot(xBalance(Z ~ . -1, strata=list(unstrat=NULL, ms.2=~pairmatch.4),data=data_covs),ggplot = TRUE)
-
-# Problem 1.3
-# Did that last operation improve the matching?
-mean(abs(summarize.4$prop.0 - summarize.4$prop.1))
-max(abs(summarize.4$prop.0 - summarize.4$prop.1))
-
-# Problem 2.1
-mat.5 <- addcaliper(mat.2, z=data_covs$Z, p=data_covs$prop, caliper=0.1)
-pairmatch.5 <- pairmatch(mat.5, data=data_covs, controls=15)
-which(pairmatch.5 != pairmatch.2)
-summarize.5 <- summarize.match(data_covs, pairmatch.5)
-plot(xBalance(Z ~ . -1, strata=list(unstrat=NULL, ms.2=~pairmatch.5),data=data_covs),ggplot = TRUE)
+# Comparing (2) and (3)
+mean(abs(summarize.3$prop.0 - summarize.3$prop.1))
+max(abs(summarize.3$prop.0 - summarize.3$prop.1))
 
 
+ # P-value from a FRT of Fisher’s sharp null f
+B  <- 100000
+T_obs <- mean((summarize.2$FIQ.1-summarize.2$FIQ.0))
+T_perm <- rep(0, B)
+p_value <- 0
+n <- length(summarize.2$FIQ.1)
+for (i in 1:B) {
+    # Permute Z
+    Z <- rbinom(n, 1, p=0.5)
+    # Compute T_perm
+    T_perm[i] <- mean((2*Z-1)*(summarize.2$FIQ.1-summarize.2$FIQ.0))
+    # Update p-value
+    if (T_perm[i] >= T_obs) {
+        p_value <- p_value + 1
+    }
+}
+p_value <- p_value / B
+cat("p-value = ", p_value, "\n")
+
+B  <- 100000
+T_obs <- mean((summarize.2$PIQ.1-summarize.2$PIQ.0))
+T_perm <- rep(0, B)
+p_value <- 0
+n <- length(summarize.2$PIQ.1)
+for (i in 1:B) {
+    # Permute Z
+    Z <- rbinom(n, 1, p=0.5)
+    # Compute T_perm
+    T_perm[i] <- mean((2*Z-1)*(summarize.2$PIQ.1-summarize.2$PIQ.0))
+    # Update p-value
+    if (T_perm[i] >= T_obs) {
+        p_value <- p_value + 1
+    }
+}
+p_value <- p_value / B
+cat("p-value = ", p_value, "\n")
+
+B  <- 100000
+T_obs <- mean((summarize.2$VIQ.1-summarize.2$VIQ.0))
+T_perm <- rep(0, B)
+p_value <- 0
+n <- length(summarize.2$VIQ.1)
+for (i in 1:B) {
+    # Permute Z
+    Z <- rbinom(n, 1, p=0.5)
+    # Compute T_perm
+    T_perm[i] <- mean((2*Z-1)*(summarize.2$VIQ.1-summarize.2$VIQ.0))
+    # Update p-value
+    if (T_perm[i] >= T_obs) {
+        p_value <- p_value + 1
+    }
+}
+p_value <- p_value / B
+cat("p-value = ", p_value, "\n")
+
+
+
+
+# Bias-corrected estimate of the average treatment effect on the treated
+colnames(data_covs)
+cols_0 <- c('SEX.0', 'AGE_AT_SCAN.0', 'HANDEDNESS_CATEGORY.0', 'CURRENT_MED_STATUS.0', 'compressed_3_1.0', 'compressed_3_2.0', 'compressed_3_3.0', 'prop.0', 'FIQ.0', 'FIQ.1')
+cols_1 <- c('SEX.1', 'AGE_AT_SCAN.1', 'HANDEDNESS_CATEGORY.1', 'CURRENT_MED_STATUS.1', 'compressed_3_1.1', 'compressed_3_2.1', 'compressed_3_3.1', 'prop.1', 'FIQ.0', 'FIQ.1')
+control <- summarize.2[, cols_0]
+colnames(control) <- c('SEX', 'AGE_AT_SCAN', 'HANDEDNESS_CATEGORY', 'CURRENT_MED_STATUS', 'compressed_3_1', 'compressed_3_2', 'compressed_3_3', 'prop', 'FIQ.0', 'FIQ.1')
+treated <- summarize.2[, cols_1]
+colnames(treated) <- c('SEX', 'AGE_AT_SCAN', 'HANDEDNESS_CATEGORY', 'CURRENT_MED_STATUS', 'compressed_3_1', 'compressed_3_2', 'compressed_3_3', 'prop', 'FIQ.0', 'FIQ.1')
+
+mu_hat_0 <- lm(FIQ.0 ~ SEX + AGE_AT_SCAN + HANDEDNESS_CATEGORY + CURRENT_MED_STATUS + compressed_3_1 + compressed_3_2 + compressed_3_3, data=control)
+mu_hat_1 <- lm(FIQ.1 ~ SEX + AGE_AT_SCAN + HANDEDNESS_CATEGORY + CURRENT_MED_STATUS + compressed_3_1 + compressed_3_2 + compressed_3_3, data=treated)
+
+bias <- predict(mu_hat_0, treated) - predict(mu_hat_0, control)
+tau <-  mean(summarize.2$FIQ.1 - summarize.2$FIQ.0)
+tau_corr  <- tau - mean(bias)
+cat("Bias-corrected estimate:", tau_corr, "\n")
+
+# Variance estimate
+V <- 1/nrow(summarize.2)**2 * (sum((treated$FIQ.1 - predict(mu_hat_1, treated))**2) + sum((control$FIQ.0 - predict(mu_hat_0, control))**2))
+cat("Variance:", V)
 

@@ -4,8 +4,8 @@ summarize.match <- function(dat, ms, ps.name="prop", keep.mset=FALSE) {
   adat <- dat
   adat$mset <- ms
   adat <- adat[!is.na(adat$mset),]
-  adat.treat <- adat[adat$z==1, ]
-  adat.ctrl <- adat[adat$z==0, ]
+  adat.treat <- adat[adat$Z==1, ]
+  adat.ctrl <- adat[adat$Z==0, ]
   
   adat.m <- merge(adat.treat, adat.ctrl, by="mset", suffixes=c(".1", ".0"))
   
