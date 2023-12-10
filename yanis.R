@@ -1,5 +1,5 @@
 
-### SETTING UP THE ENVIRONMENT ###
+### SETTING UP THE ENVIR ONMENT ###
 setwd("/Users/yanis/Documents/Stanford/STATS 209/Project/")
 getwd()
 
@@ -181,7 +181,8 @@ ggplot(data_covs, aes(x=PIQ, fill=factor(Z))) + geom_histogram(alpha=0.5, positi
 
 # Problem 3
 # Propensity score model
-ps <- glm(Z ~ ., data=data_covs, family=binomial())
+formula_covs <- Z ~ SEX + AGE_AT_SCAN + HANDEDNESS_CATEGORY + CURRENT_MED_STATUS + compressed_3_1 + compressed_3_2 + compressed_3_3
+ps <- glm(formula_covs, data=data_covs, family=binomial())
 data_covs$prop <- ps$fitted.values
 
 # Plot propensity score distributions 
@@ -196,28 +197,13 @@ ggplot(data_covs, aes(x=prop, fill=factor(Z))) + geom_density(alpha=0.5) + labs(
 # Part B 
 # Problem 1
 # Mahalanobis matching
-colnames(data_covs)
-covariates_cols <- c("FIQ", "VIQ", "PIQ", "SEX", "AGE_AT_SCAN", "HANDEDNESS_CATEGORY", "CURRENT_MED_STATUS", cols_mri)
-data_covs$HANDEDNESS_CATEGORY <- as.numeric(factor(data_covs$HANDEDNESS_CATEGORY))-1
-data_covs$CURRENT_MED_STATUS <- as.numeric(factor(data_covs$CURRENT_MED_STATUS))-1
-# Count the number of missing values in each column
-for (col in covariates_cols) {
-  cat(col, ": ", sum(is.na(data_covs[,col])), "\n")
-}
-sum(is.na(data_covs[,"prop"]))
-ncol(data_covs)
-nrow(data_covs)
-mat.1 <- smahal(data_covs$Z, data_covs[,covariates_cols])
-# get size of matrix
-dim(mat.1)
-# check no na or inf in matrix
-sum(is.na(mat.1))
-sum(is.infinite(mat.1))
-pairmatch.1 <- pairmatch(mat.1, data=data_covs) # BUG HERE (probably because of the missing values in the covariates)
-
+data_covs <- na.omit(data_covs)
+mat.1 <- match_on(formula_covs, data=data_covs)
+pairmatch.1 <- pairmatch(mat.1, data=data_covs)
 summarize.1 <- summarize.match(data_covs, pairmatch.1)
 print(pairmatch.1, grouped = TRUE)
-plot(xBalance(zb ~ . -1,strata=list(unstrat=NULL, ms.2=~pairmatch.1), data=data_covs),ggplot = TRUE)
+formula_plot <- Z ~ SEX + AGE_AT_SCAN + HANDEDNESS_CATEGORY + CURRENT_MED_STATUS + compressed_3_1 + compressed_3_2 + compressed_3_3 -1
+plot(xBalance(formula_plot,strata=list(unstrat=NULL, ms.2=~pairmatch.1), data=data_covs),ggplot = TRUE)
 
 
 # Problem 2.1
