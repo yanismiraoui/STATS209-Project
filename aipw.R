@@ -221,7 +221,7 @@ compute_AIPW <- function(data, Y_name, cols_covariates) {
 
 # Main Analysis
 # Assuming 'data' is your dataframe and 'FIQ' is the outcome variable
-Y_name <- "PIQ"
+Y_name <- "VIQ"
 cols_covariates <- c("Z", "FIQ", "VIQ", "PIQ", "SEX", "AGE_AT_SCAN", "HANDEDNESS_CATEGORY", cols_mri, "prop")
 tau <- compute_AIPW(data, Y_name, cols_covariates)
 cat("AIPW estimate: ", tau, "\n")

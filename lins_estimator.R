@@ -127,7 +127,7 @@ data_covs_1_control <- data_covs_control[idx_control,]
 data_covs_2_control <- data_covs_control[-idx_control,]
 
 # Set the Y variable 
-Y_name <- "FIQ"
+Y_name <- "VIQ"
 
 X_1_treatment <- model.matrix( ~ factor(SEX)+AGE_AT_SCAN+factor(HANDEDNESS_CATEGORY)+factor(CURRENT_MED_STATUS)+compressed_3_1+compressed_3_2+compressed_3_3 , data_covs_1_treatment) %>% scale(center=T, scale=F)
 ncol(X_1_treatment)
@@ -162,9 +162,11 @@ cat("tau: ", tau, "\n")
 var_1 <- (1/n_treatment_1)*(1/(n_treatment_1-1))*sum((data_covs_1_treatment[,Y_name]-predict(mu_2, X_1_treatment))^2) + (1/n_control_1)*(1/(n_control_1-1))*sum((data_covs_1_control[,Y_name]-predict(mu_2, X_1_control))^2) + 1/(n_treatment_1+n_control_1)*var(mu_tilde_2[-nrow(mu_tilde_2),] - mu_tilde_1)
 var_2 <- (1/n_treatment_2)*(1/(n_treatment_2-1))*sum((data_covs_2_treatment[,Y_name]-predict(mu_1, X_2_treatment))^2) + (1/n_control_2)*(1/(n_control_2-1))*sum((data_covs_2_control[,Y_name]-predict(mu_1, X_2_control))^2) + 1/(n_treatment_2+n_control_2)*var(mu_tilde_2[-nrow(mu_tilde_2),] - mu_tilde_1)
 var <- ((n_treatment_1+n_control_1)/n)^2*var_1 + ((n_treatment_2+n_control_2)/n)^2*var_2
+cat("var: ", var, "\n")
 
 # Confidence interval for tau
 CI <- c(tau - 1.96*sqrt(var), tau + 1.96*sqrt(var))
-CI
+cat("CI: ", CI, "\n")
+
 
 
