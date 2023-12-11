@@ -230,7 +230,7 @@ mean(abs(summarize.3$prop.0 - summarize.3$prop.1))
 max(abs(summarize.3$prop.0 - summarize.3$prop.1))
 
 
- # P-value from a FRT of Fisher’s sharp null f
+# P-value from a FRT of Fisher’s sharp null f
 B  <- 100000
 T_obs <- mean((summarize.2$FIQ.1-summarize.2$FIQ.0))
 T_perm <- rep(0, B)

@@ -127,7 +127,7 @@ data_covs_1_control <- data_covs_control[idx_control,]
 data_covs_2_control <- data_covs_control[-idx_control,]
 
 # Set the Y variable 
-Y_name <- "VIQ"
+Y_name <- "FIQ"
 
 X_1_treatment <- model.matrix( ~ factor(SEX)+AGE_AT_SCAN+factor(HANDEDNESS_CATEGORY)+factor(CURRENT_MED_STATUS)+compressed_3_1+compressed_3_2+compressed_3_3 , data_covs_1_treatment) %>% scale(center=T, scale=F)
 ncol(X_1_treatment)

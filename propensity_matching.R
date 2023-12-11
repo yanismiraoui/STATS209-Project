@@ -152,6 +152,88 @@ max(abs(summarize.3$prop.0 - summarize.3$prop.1))
 
 
 
+# P-value from a FRT of Fisher’s sharp null f
+B  <- 100000
+T_obs <- mean((summarize.2$FIQ.1-summarize.2$FIQ.0))
+T_perm <- rep(0, B)
+p_value <- 0
+n <- length(summarize.2$FIQ.1)
+for (i in 1:B) {
+    # Permute Z
+    Z <- rbinom(n, 1, p=0.5)
+    # Compute T_perm
+    T_perm[i] <- mean((2*Z-1)*(summarize.2$FIQ.1-summarize.2$FIQ.0))
+    # Update p-value
+    if (T_perm[i] >= T_obs) {
+        p_value <- p_value + 1
+    }
+}
+p_value <- p_value / B
+cat("p-value = ", p_value, "\n")
+
+B  <- 100000
+T_obs <- mean((summarize.2$PIQ.1-summarize.2$PIQ.0))
+T_perm <- rep(0, B)
+p_value <- 0
+n <- length(summarize.2$PIQ.1)
+for (i in 1:B) {
+    # Permute Z
+    Z <- rbinom(n, 1, p=0.5)
+    # Compute T_perm
+    T_perm[i] <- mean((2*Z-1)*(summarize.2$PIQ.1-summarize.2$PIQ.0))
+    # Update p-value
+    if (T_perm[i] >= T_obs) {
+        p_value <- p_value + 1
+    }
+}
+p_value <- p_value / B
+cat("p-value = ", p_value, "\n")
+
+B  <- 100000
+T_obs <- mean((summarize.2$VIQ.1-summarize.2$VIQ.0))
+T_perm <- rep(0, B)
+p_value <- 0
+n <- length(summarize.2$VIQ.1)
+for (i in 1:B) {
+    # Permute Z
+    Z <- rbinom(n, 1, p=0.5)
+    # Compute T_perm
+    T_perm[i] <- mean((2*Z-1)*(summarize.2$VIQ.1-summarize.2$VIQ.0))
+    # Update p-value
+    if (T_perm[i] >= T_obs) {
+        p_value <- p_value + 1
+    }
+}
+p_value <- p_value / B
+cat("p-value = ", p_value, "\n")
+
+
+
+
+# Bias-corrected estimate of the average treatment effect on the treated
+colnames(data_covs)
+cols_0 <- c('SEX.0', 'AGE_AT_SCAN.0', 'HANDEDNESS_CATEGORY.0', 'CURRENT_MED_STATUS.0', 'compressed_3_1.0', 'compressed_3_2.0', 'compressed_3_3.0', 'prop.0', 'FIQ.0', 'FIQ.1')
+cols_1 <- c('SEX.1', 'AGE_AT_SCAN.1', 'HANDEDNESS_CATEGORY.1', 'CURRENT_MED_STATUS.1', 'compressed_3_1.1', 'compressed_3_2.1', 'compressed_3_3.1', 'prop.1', 'FIQ.0', 'FIQ.1')
+control <- summarize.2[, cols_0]
+colnames(control) <- c('SEX', 'AGE_AT_SCAN', 'HANDEDNESS_CATEGORY', 'CURRENT_MED_STATUS', 'compressed_3_1', 'compressed_3_2', 'compressed_3_3', 'prop', 'FIQ.0', 'FIQ.1')
+treated <- summarize.2[, cols_1]
+colnames(treated) <- c('SEX', 'AGE_AT_SCAN', 'HANDEDNESS_CATEGORY', 'CURRENT_MED_STATUS', 'compressed_3_1', 'compressed_3_2', 'compressed_3_3', 'prop', 'FIQ.0', 'FIQ.1')
+
+mu_hat_0 <- lm(FIQ.0 ~ SEX + AGE_AT_SCAN + HANDEDNESS_CATEGORY + CURRENT_MED_STATUS + compressed_3_1 + compressed_3_2 + compressed_3_3, data=control)
+mu_hat_1 <- lm(FIQ.1 ~ SEX + AGE_AT_SCAN + HANDEDNESS_CATEGORY + CURRENT_MED_STATUS + compressed_3_1 + compressed_3_2 + compressed_3_3, data=treated)
+
+bias <- predict(mu_hat_0, treated) - predict(mu_hat_0, control)
+tau <-  mean(summarize.2$FIQ.1 - summarize.2$FIQ.0)
+tau_corr  <- tau - mean(bias)
+cat("Bias-corrected estimate:", tau_corr, "\n")
+
+# Variance estimate
+V <- 1/nrow(summarize.2)**2 * (sum((treated$FIQ.1 - predict(mu_hat_1, treated))**2) + sum((control$FIQ.0 - predict(mu_hat_0, control))**2))
+cat("Variance:", V)
+
+# Confidence interval
+CI <- c(tau_corr - 1.96*sqrt(V), tau_corr + 1.96*sqrt(V))
+cat("Confidence interval:", CI, "\n")
 
 
 
