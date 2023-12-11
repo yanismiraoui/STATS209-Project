@@ -1,0 +1,26 @@
+ESTIMATOR COMPARISON:
++------------+------------+------------+------------+
+| Estimator  | FIQ   | PIQ   |  VIQ   |
++------------+------------+------------+------------+
+| Lin's estimator| Row 1 Col 2| Row 1 Col 3| Row 1 Col 4|
+| FRT with matching| Row 2 Col 2| Row 2 Col 3| Row 2 Col 4|
+| AIPW| 9.621716 | 5.723867 | Row 3 Col 4|
++------------+------------+------------+------------+
+
+VARIANCE COMPARISON:
++------------+------------+------------+------------+
+| Estimator  | Lin's estimator   | FRT with matching   |  AIPW   |
++------------+------------+------------+------------+
+| Lin's estimator| Row 1 Col 2| Row 1 Col 3| Row 1 Col 4|
+| FRT with matching| Row 2 Col 2| Row 2 Col 3| Row 2 Col 4|
+| AIPW| 16.53074 | Row 3 Col 3| Row 3 Col 4|
++------------+------------+------------+------------+
+
+CONFIDENCE INTERVAL COMPARISON:
++------------+------------+------------+------------+
+| Estimator  | Lin's estimator   | FRT with matching   |  AIPW   |
++------------+------------+------------+------------+
+| Lin's estimator| Row 1 Col 2| Row 1 Col 3| Row 1 Col 4|
+| FRT with matching| Row 2 Col 2| Row 2 Col 3| Row 2 Col 4|
+| AIPW| [1.652746 17.59069] | Row 3 Col 3| Row 3 Col 4|
++------------+------------+------------+------------+
