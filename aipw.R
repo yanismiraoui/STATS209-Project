@@ -71,7 +71,7 @@ for (i in 1:SIZE_COMPRESSED_MRI) {
 cols_mri
 
 # Covariates: SEX, AGE_AT_SCAN, HANDEDNESS, CURRENT_MED_STATUS, MRI_FEATURES
-cols_covariates <- c("Z", "FIQ", "VIQ", "PIQ", "SEX", "AGE_AT_SCAN", "HANDEDNESS_CATEGORY", "CURRENT_MED_STATUS", cols_mri, "prop")
+cols_covariates <- c("Z", "FIQ", "VIQ", "PIQ", "SEX", "AGE_AT_SCAN", "HANDEDNESS_CATEGORY", "CURRENT_MED_STATUS", cols_mri)
 cols_covariates
 
 ### PROPENSITY SCORE MATCHING ###
@@ -102,6 +102,7 @@ ggplot(data_covs, aes(x=prop, fill=factor(Z))) + geom_density(alpha=0.5) + labs(
 # Set seed for reproducibility
 set.seed(12345)
 
+cols_covariates <- c("Z", "FIQ", "VIQ", "PIQ", "SEX", "AGE_AT_SCAN", "HANDEDNESS_CATEGORY", "CURRENT_MED_STATUS", cols_mri, "prop")
 data_covs <- data[, cols_covariates]
 n <- nrow(data_covs)
 data_covs_treatment <- data_covs[data_covs$Z == 1,]
@@ -164,6 +165,9 @@ cat("tau: ", tau, "\n")
 # AIPW estimation function
 compute_AIPW <- function(data, Y_name, cols_covariates) {
     # Splitting data into treatment and control
+    formula_covs <- Z ~ SEX + AGE_AT_SCAN + HANDEDNESS_CATEGORY + compressed_3_1 + compressed_3_2 + compressed_3_3
+    ps <- glm(formula_covs, data=data_covs, family=binomial())
+    data$prop <- ps$fitted.values
     data_covs <- data[, cols_covariates]
     n <- nrow(data_covs)
     data_covs_treatment <- data_covs[data_covs$Z == 1,]
@@ -221,7 +225,7 @@ compute_AIPW <- function(data, Y_name, cols_covariates) {
 
 # Main Analysis
 # Assuming 'data' is your dataframe and 'FIQ' is the outcome variable
-Y_name <- "FIQ"
+Y_name <- "PIQ"
 cols_covariates <- c("Z", "FIQ", "VIQ", "PIQ", "SEX", "AGE_AT_SCAN", "HANDEDNESS_CATEGORY", cols_mri, "prop")
 tau <- compute_AIPW(data, Y_name, cols_covariates)
 cat("AIPW estimate: ", tau, "\n")
