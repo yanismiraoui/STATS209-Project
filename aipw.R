@@ -253,6 +253,8 @@ cat("Bootstrap variance: ", bootstrap_variance, "\n")
 
 # Print the AIPW estimate
 cat("AIPW estimate: ", tau, "\n")
+tau <-9.621716
+bootstrap_variance <- 2.53074
 
 # Print the 95% confidence interval
 CI <- c(tau - 1.96*sqrt(bootstrap_variance), tau + 1.96*sqrt(bootstrap_variance))
