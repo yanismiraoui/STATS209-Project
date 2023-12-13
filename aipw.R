@@ -259,4 +259,46 @@ cat("AIPW estimate: ", tau, "\n")
 CI <- c(tau - 1.96*sqrt(bootstrap_variance), tau + 1.96*sqrt(bootstrap_variance))
 cat("95% confidence interval: ", CI, "\n")
 
+# Data for FIQ Estimator Comparison
+estimators <- c("Basic estimator", "ATE with matching", "AIPW")
+fiq_values <- c(5.428988, 6.387725, 9.621716)
+piq_values <- c(2.638597, 3.490434, 5.723867)
+viq_values <- c(6.932058, 7.88279, 11.47884)
+
+df_fiq <- data.frame(Estimator = estimators, Value = viq_values)
+
+# Plot
+ggplot(df_fiq, aes(x = Estimator, y = Value, fill = Estimator)) + 
+  geom_bar(stat = "identity", position = position_dodge()) + 
+  theme_minimal() + 
+  labs(title = "VIQ Estimator Comparison", y = "Value", x = "Estimator")
+
+
+# Data for Estimator Comparison
+estimators <- c("Lin's estimator", "ATE with matching", "AIPW")
+fiq_values <- c(5.428988, 6.387725, 9.621716)
+piq_values <- c(2.638597, 3.490434, 5.723867)
+viq_values <- c(6.932058, 7.88279, 11.47884)
+
+df <- data.frame(Estimator = rep(estimators, 3),
+                 Value = c(fiq_values, piq_values, viq_values),
+                 IQ_Score = rep(c("FIQ", "PIQ", "VIQ"), each = 3))
+
+# Plot with larger text and y-axis range from 0 to 10
+ggplot(df, aes(x = Estimator, y = Value, fill = Estimator)) + 
+  geom_bar(stat = "identity", position = position_dodge()) + 
+  facet_wrap(~ IQ_Score, scales = "free") +
+  theme_minimal() +
+  scale_y_continuous(limits = c(0, 12)) +  # Setting y-axis limits
+  labs(title = "Estimator Comparison for IQ Scores", y = "Value", x = "Estimator") +
+  theme(text = element_text(size = 14),
+        axis.title = element_text(size = 16),
+        axis.text.x = element_blank(), 
+        axis.text = element_text(size = 14),
+        legend.title = element_text(size = 16),
+        legend.text = element_text(size = 14))
+
+
+
+
 

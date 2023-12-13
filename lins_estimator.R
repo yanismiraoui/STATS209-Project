@@ -100,10 +100,12 @@ summary(fit1)
 Y_2 <- data_covs$VIQ
 fit2 <- lm_robust(Y_2~Z+X+Z*X)
 summary(fit2)
+1.5689^2
 
 Y_3 <- data_covs$PIQ
 fit3 <- lm_robust(Y_3~Z+X+Z*X)
 summary(fit3)
+1.0749^2
 
 
 ### BASIC CONTROL AND ML REGRESSION ADJUSTMENT ###
