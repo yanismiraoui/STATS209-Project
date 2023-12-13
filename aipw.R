@@ -74,7 +74,7 @@ cols_mri
 cols_covariates <- c("Z", "FIQ", "VIQ", "PIQ", "SEX", "AGE_AT_SCAN", "HANDEDNESS_CATEGORY", cols_mri)
 cols_covariates
 
-### PROPENSITY SCORE MATCHING ###
+### AIPW ###
 
 # Analysis of the covariates
 data_covs <- data[, cols_covariates]

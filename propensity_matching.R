@@ -103,6 +103,23 @@ data_covs$prop <- ps$fitted.values
 
 # Plot propensity score distributions 
 par(mfrow=c(1,1))
+
+ggplot() + 
+  geom_histogram(aes(x = data_covs[data_covs$Z == 1, "prop"], y = after_stat(density), 
+                     fill = "Treatment"), 
+                 binwidth = 0.01, 
+                 color = "black", 
+                 alpha = 0.5) +
+  geom_histogram(aes(x = data_covs[data_covs$Z == 0, "prop"], y = after_stat(density), 
+                     fill = "Control"), 
+                 binwidth = 0.01,  
+                 color = "black", 
+                 alpha = 0.5) +
+  labs(x = "Propensit", y = "Frequency") + 
+  scale_fill_manual(values = c("Treatment" = "firebrick", "Control" = "lightblue")) +
+  guides(fill = guide_legend(title = "Group"))
+
+
 hist(data_covs$prop[data_covs$Z==1], main="Propensity Score", xlab="Propensity Score", freq=FALSE, col="black")
 hist(data_covs$prop[data_covs$Z==0], add=TRUE, freq=FALSE, col="red", alpha=0.5)
 legend("topright", c("Treated","Control"), fill=c("black","red"), cex=2)
@@ -131,8 +148,8 @@ plot(xBalance(formula_plot, strata=list(unstrat=NULL, ms.2=~pairmatch.2),data=da
 
 ## Comparing (1) and (2)
 par(mfrow=c(1,2))
-plot(xBalance(formula_plot, strata=list(unstrat=NULL, ms.2=~pairmatch.1),data=data_covs),ggplot = TRUE)
-plot(xBalance(formula_plot, strata=list(unstrat=NULL, ms.2=~pairmatch.2),data=data_covs),ggplot = TRUE)
+plot(xBalance(formula_plot, strata=list(unadj=NULL, matches=~pairmatch.1),data=data_covs),ggplot = TRUE)
+plot(xBalance(formula_plot, strata=list(unadj=NULL, matches=~pairmatch.2),data=data_covs),ggplot = TRUE)
 # Average absolute difference in propensity scores within caliper-matched pairs
 mean(abs(summarize.2$prop.0 - summarize.2$prop.1))
 # Maximum absolute difference in propensity score
