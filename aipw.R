@@ -260,21 +260,43 @@ CI <- c(tau - 1.96*sqrt(bootstrap_variance), tau + 1.96*sqrt(bootstrap_variance)
 cat("95% confidence interval: ", CI, "\n")
 
 # Data for FIQ Estimator Comparison
-estimators <- c("Lin's estimator", "ATE with matching", "AIPW")
+estimators <- c("Basic estimator", "ATE with matching", "AIPW")
 fiq_values <- c(5.428988, 6.387725, 9.621716)
+piq_values <- c(2.638597, 3.490434, 5.723867)
+viq_values <- c(6.932058, 7.88279, 11.47884)
 
-df_fiq <- data.frame(Estimator = estimators, Value = fiq_values)
+df_fiq <- data.frame(Estimator = estimators, Value = viq_values)
 
-# Plot with larger text and legend
+# Plot
 ggplot(df_fiq, aes(x = Estimator, y = Value, fill = Estimator)) + 
   geom_bar(stat = "identity", position = position_dodge()) + 
   theme_minimal() + 
-  labs(title = "FIQ Estimator Comparison", y = "Value", x = "Estimator") +
-  theme(text = element_text(size = 26),  # Adjusts overall text size
-        axis.title = element_text(size = 26),  # Adjusts axis title size
-        axis.text = element_text(size = 18),   # Adjusts axis text size
-        legend.title = element_text(size = 26),  # Adjusts legend title size
-        legend.text = element_text(size = 22))  # Adjusts legend text size
+  labs(title = "VIQ Estimator Comparison", y = "Value", x = "Estimator")
+
+
+# Data for Estimator Comparison
+estimators <- c("Lin's estimator", "Generalized Lin's Estimator", "ATE with matching", "AIPW")
+fiq_values <- c(5.9695, 5.428988, 6.387725, 9.621716)
+piq_values <- c(3.27743, 2.638597, 3.490434, 5.723867)
+viq_values <- c(7.5307, 6.932058, 7.88279, 11.47884)
+
+df <- data.frame(Estimator = rep(estimators, 3),
+                 Value = c(fiq_values, piq_values, viq_values),
+                 IQ_Score = rep(c("FIQ", "PIQ", "VIQ"), each = 4))
+
+# Plot with larger text and y-axis range from 0 to 10
+ggplot(df, aes(x = Estimator, y = Value, fill = Estimator)) + 
+  geom_bar(stat = "identity", position = position_dodge()) + 
+  facet_wrap(~ IQ_Score, scales = "free") +
+  theme_minimal() +
+  scale_y_continuous(limits = c(0, 12)) +  # Setting y-axis limits
+  labs(title = "Estimator Comparison for IQ Scores", y = "Value", x = "Estimator") +
+  theme(text = element_text(size = 14),
+        axis.title = element_text(size = 16),
+        axis.text.x = element_blank(),
+        axis.text = element_text(size = 14),
+        legend.title = element_text(size = 16),
+        legend.text = element_text(size = 14))
 
 
 
