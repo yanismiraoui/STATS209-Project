@@ -61,7 +61,7 @@ cat("Number of rows: ", nrow(data), "\n")
 data <- data[!grepl("`", data$CURRENT_MED_STATUS),]
 cat("Number of rows: ", nrow(data), "\n")
 
-# Covariates: SEX, AGE_AT_SCAN, HANDEDNESS, CURRENT_MED_STATUS, MRI_FEATURES
+# Covariates: SEX, AGE_AT_SCAN, HANDEDNESS, MRI_FEATURES
 SIZE_COMPRESSED_MRI <- 3
 # Create a vector of the columns with names f"compressed_{SIZE_COMPRESSED_MRI}_{i}" for i in 1:SIZE_COMPRESSED_MRI
 cols_mri <- c()
@@ -71,7 +71,7 @@ for (i in 1:SIZE_COMPRESSED_MRI) {
 cols_mri
 
 # Covariates: SEX, AGE_AT_SCAN, HANDEDNESS, CURRENT_MED_STATUS, MRI_FEATURES
-cols_covariates <- c("Z", "FIQ", "VIQ", "PIQ", "SEX", "AGE_AT_SCAN", "HANDEDNESS_CATEGORY", "CURRENT_MED_STATUS", cols_mri)
+cols_covariates <- c("Z", "FIQ", "VIQ", "PIQ", "SEX", "AGE_AT_SCAN", "HANDEDNESS_CATEGORY", cols_mri)
 cols_covariates
 
 ### PROPENSITY SCORE MATCHING ###
@@ -80,7 +80,6 @@ cols_covariates
 data_covs <- data[, cols_covariates]
 data_covs$Z <- as.numeric(data_covs$Z)-1
 data_covs$HANDEDNESS_CATEGORY <- as.numeric(factor(data_covs$HANDEDNESS_CATEGORY))-1
-data_covs$CURRENT_MED_STATUS <- as.numeric(factor(data_covs$CURRENT_MED_STATUS))-1
 xbal <- xBalance(Z ~ ., data=data_covs)
 print(xbal)
 par(mfrow=c(1,1))
@@ -88,7 +87,7 @@ ggplot(data_covs, aes(x=FIQ, fill=factor(Z))) + geom_histogram(alpha=0.5, positi
 ggplot(data_covs, aes(x=PIQ, fill=factor(Z))) + geom_histogram(alpha=0.5, position="identity", bins=20) + labs(title="PIQ", x="PIQ", y="Count") + scale_fill_discrete(name="Treatment")
 
 # Compute propensity score
-formula_covs <- Z ~ SEX + AGE_AT_SCAN + HANDEDNESS_CATEGORY + CURRENT_MED_STATUS + compressed_3_1 + compressed_3_2 + compressed_3_3
+formula_covs <- Z ~ SEX + AGE_AT_SCAN + HANDEDNESS_CATEGORY + compressed_3_1 + compressed_3_2 + compressed_3_3
 ps <- glm(formula_covs, data=data_covs, family=binomial())
 data$prop <- ps$fitted.values
 
@@ -102,7 +101,7 @@ ggplot(data_covs, aes(x=prop, fill=factor(Z))) + geom_density(alpha=0.5) + labs(
 # Set seed for reproducibility
 set.seed(12345)
 
-cols_covariates <- c("Z", "FIQ", "VIQ", "PIQ", "SEX", "AGE_AT_SCAN", "HANDEDNESS_CATEGORY", "CURRENT_MED_STATUS", cols_mri, "prop")
+cols_covariates <- c("Z", "FIQ", "VIQ", "PIQ", "SEX", "AGE_AT_SCAN", "HANDEDNESS_CATEGORY", cols_mri, "prop")
 data_covs <- data[, cols_covariates]
 n <- nrow(data_covs)
 data_covs_treatment <- data_covs[data_covs$Z == 1,]
@@ -121,22 +120,22 @@ data_covs_2_control <- data_covs_control[-idx_control,]
 # Set the Y variable 
 Y_name <- "FIQ"
 
-X_1_treatment <- model.matrix( ~ factor(SEX)+AGE_AT_SCAN+factor(HANDEDNESS_CATEGORY)+factor(CURRENT_MED_STATUS)+compressed_3_1+compressed_3_2+compressed_3_3 , data_covs_1_treatment) %>% scale(center=T, scale=F)
+X_1_treatment <- model.matrix( ~ factor(SEX)+AGE_AT_SCAN+factor(HANDEDNESS_CATEGORY)+compressed_3_1+compressed_3_2+compressed_3_3 , data_covs_1_treatment) %>% scale(center=T, scale=F)
 ncol(X_1_treatment)
 Y <- data_covs_1_treatment[, Y_name]
 mu_1 <- regression_forest(X_1_treatment,Y)
 
-X_1_control <- model.matrix( ~ factor(SEX)+AGE_AT_SCAN+factor(HANDEDNESS_CATEGORY)+factor(CURRENT_MED_STATUS)+compressed_3_1+compressed_3_2+compressed_3_3 , data_covs_1_control) %>% scale(center=T, scale=F)
+X_1_control <- model.matrix( ~ factor(SEX)+AGE_AT_SCAN+factor(HANDEDNESS_CATEGORY)+compressed_3_1+compressed_3_2+compressed_3_3 , data_covs_1_control) %>% scale(center=T, scale=F)
 ncol(X_1_control)
 Y <- data_covs_1_control[, Y_name]
 mu_1_control <- regression_forest(X_1_control,Y)
 
-X_2_treatment <- model.matrix( ~ factor(SEX)+AGE_AT_SCAN+factor(HANDEDNESS_CATEGORY)+factor(CURRENT_MED_STATUS)+compressed_3_1+compressed_3_2+compressed_3_3 , data_covs_2_treatment) %>% scale(center=T, scale=F)
+X_2_treatment <- model.matrix( ~ factor(SEX)+AGE_AT_SCAN+factor(HANDEDNESS_CATEGORY)+compressed_3_1+compressed_3_2+compressed_3_3 , data_covs_2_treatment) %>% scale(center=T, scale=F)
 ncol(X_2_treatment)
 Y <- data_covs_2_treatment[, Y_name]
 mu_2 <- regression_forest(X_2_treatment,Y)
 
-X_2_control <- model.matrix( ~ factor(SEX)+AGE_AT_SCAN+factor(HANDEDNESS_CATEGORY)+factor(CURRENT_MED_STATUS)+compressed_3_1+compressed_3_2+compressed_3_3 , data_covs_2_control) %>% scale(center=T, scale=F)
+X_2_control <- model.matrix( ~ factor(SEX)+AGE_AT_SCAN+factor(HANDEDNESS_CATEGORY)+compressed_3_1+compressed_3_2+compressed_3_3 , data_covs_2_control) %>% scale(center=T, scale=F)
 ncol(X_2_control)
 Y <- data_covs_2_control[, Y_name]
 mu_2_control <- regression_forest(X_2_control,Y)

@@ -81,7 +81,7 @@ for (i in 1:SIZE_COMPRESSED_MRI) {
 cols_mri
 
 # Covariates: SEX, AGE_AT_SCAN, HANDEDNESS, CURRENT_MED_STATUS, MRI_FEATURES
-cols_covariates <- c("Z", "FIQ", "VIQ", "PIQ", "SEX", "AGE_AT_SCAN", "HANDEDNESS_CATEGORY", "CURRENT_MED_STATUS", cols_mri)
+cols_covariates <- c("Z", "FIQ", "VIQ", "PIQ", "SEX", "AGE_AT_SCAN", "HANDEDNESS_CATEGORY", cols_mri)
 cols_covariates
 
 ### PROPENSITY SCORE MATCHING ###
@@ -90,7 +90,6 @@ cols_covariates
 data_covs <- data[, cols_covariates]
 data_covs$Z <- as.numeric(data_covs$Z)-1
 data_covs$HANDEDNESS_CATEGORY <- as.numeric(factor(data_covs$HANDEDNESS_CATEGORY))-1
-data_covs$CURRENT_MED_STATUS <- as.numeric(factor(data_covs$CURRENT_MED_STATUS))-1
 xbal <- xBalance(Z ~ ., data=data_covs)
 print(xbal)
 par(mfrow=c(1,1))
@@ -98,7 +97,7 @@ ggplot(data_covs, aes(x=FIQ, fill=factor(Z))) + geom_histogram(alpha=0.5, positi
 ggplot(data_covs, aes(x=PIQ, fill=factor(Z))) + geom_histogram(alpha=0.5, position="identity", bins=20) + labs(title="PIQ", x="PIQ", y="Count") + scale_fill_discrete(name="Treatment")
 
 # Compute propensity score
-formula_covs <- Z ~ SEX + AGE_AT_SCAN + HANDEDNESS_CATEGORY + CURRENT_MED_STATUS + compressed_3_1 + compressed_3_2 + compressed_3_3
+formula_covs <- Z ~ SEX + AGE_AT_SCAN + HANDEDNESS_CATEGORY + compressed_3_1 + compressed_3_2 + compressed_3_3
 ps <- glm(formula_covs, data=data_covs, family=binomial())
 data_covs$prop <- ps$fitted.values
 
@@ -116,7 +115,7 @@ mat.1 <- match_on(formula_covs, data=data_covs)
 pairmatch.1 <- pairmatch(mat.1, data=data_covs)
 summarize.1 <- summarize.match(data_covs, pairmatch.1)
 print(pairmatch.1, grouped = TRUE)
-formula_plot <- Z ~ SEX + AGE_AT_SCAN + HANDEDNESS_CATEGORY + CURRENT_MED_STATUS + compressed_3_1 + compressed_3_2 + compressed_3_3 -1
+formula_plot <- Z ~ SEX + AGE_AT_SCAN + HANDEDNESS_CATEGORY + compressed_3_1 + compressed_3_2 + compressed_3_3 -1
 plot(xBalance(formula_plot,strata=list(unstrat=NULL, ms.2=~pairmatch.1), data=data_covs),ggplot = TRUE)
 
 # Average absolute difference in propensity scores within matched pairs
@@ -141,7 +140,7 @@ max(abs(summarize.2$prop.0 - summarize.2$prop.1))
 
 
 # Matching on the propensity score with a caliper and a ratio
-mat.3 <- addalmostexact(mat.2, z=data_covs$Z, f=data_covs$CURRENT_MED_STATUS, mult=10)
+mat.3 <- addalmostexact(mat.2, z=data_covs$Z, f=data_covs$SEX, mult=10)
 pairmatch.3 <- pairmatch(mat.3, data=data_covs)
 summarize.3 <- summarize.match(data_covs, pairmatch.3)
 plot(xBalance(formula_plot, strata=list(unstrat=NULL, ms.2=~pairmatch.3),data=data_covs),ggplot = TRUE)
@@ -212,15 +211,15 @@ cat("p-value = ", p_value, "\n")
 
 # Bias-corrected estimate of the average treatment effect on the treated
 colnames(data_covs)
-cols_0 <- c('SEX.0', 'AGE_AT_SCAN.0', 'HANDEDNESS_CATEGORY.0', 'CURRENT_MED_STATUS.0', 'compressed_3_1.0', 'compressed_3_2.0', 'compressed_3_3.0', 'prop.0', 'FIQ.0', 'FIQ.1')
-cols_1 <- c('SEX.1', 'AGE_AT_SCAN.1', 'HANDEDNESS_CATEGORY.1', 'CURRENT_MED_STATUS.1', 'compressed_3_1.1', 'compressed_3_2.1', 'compressed_3_3.1', 'prop.1', 'FIQ.0', 'FIQ.1')
+cols_0 <- c('SEX.0', 'AGE_AT_SCAN.0', 'HANDEDNESS_CATEGORY.0', 'compressed_3_1.0', 'compressed_3_2.0', 'compressed_3_3.0', 'prop.0', 'FIQ.0', 'FIQ.1')
+cols_1 <- c('SEX.1', 'AGE_AT_SCAN.1', 'HANDEDNESS_CATEGORY.1', 'compressed_3_1.1', 'compressed_3_2.1', 'compressed_3_3.1', 'prop.1', 'FIQ.0', 'FIQ.1')
 control <- summarize.2[, cols_0]
-colnames(control) <- c('SEX', 'AGE_AT_SCAN', 'HANDEDNESS_CATEGORY', 'CURRENT_MED_STATUS', 'compressed_3_1', 'compressed_3_2', 'compressed_3_3', 'prop', 'FIQ.0', 'FIQ.1')
+colnames(control) <- c('SEX', 'AGE_AT_SCAN', 'HANDEDNESS_CATEGORY', 'compressed_3_1', 'compressed_3_2', 'compressed_3_3', 'prop', 'FIQ.0', 'FIQ.1')
 treated <- summarize.2[, cols_1]
-colnames(treated) <- c('SEX', 'AGE_AT_SCAN', 'HANDEDNESS_CATEGORY', 'CURRENT_MED_STATUS', 'compressed_3_1', 'compressed_3_2', 'compressed_3_3', 'prop', 'FIQ.0', 'FIQ.1')
+colnames(treated) <- c('SEX', 'AGE_AT_SCAN', 'HANDEDNESS_CATEGORY', 'compressed_3_1', 'compressed_3_2', 'compressed_3_3', 'prop', 'FIQ.0', 'FIQ.1')
 
-mu_hat_0 <- lm(FIQ.0 ~ SEX + AGE_AT_SCAN + HANDEDNESS_CATEGORY + CURRENT_MED_STATUS + compressed_3_1 + compressed_3_2 + compressed_3_3, data=control)
-mu_hat_1 <- lm(FIQ.1 ~ SEX + AGE_AT_SCAN + HANDEDNESS_CATEGORY + CURRENT_MED_STATUS + compressed_3_1 + compressed_3_2 + compressed_3_3, data=treated)
+mu_hat_0 <- lm(FIQ.0 ~ SEX + AGE_AT_SCAN + HANDEDNESS_CATEGORY + compressed_3_1 + compressed_3_2 + compressed_3_3, data=control)
+mu_hat_1 <- lm(FIQ.1 ~ SEX + AGE_AT_SCAN + HANDEDNESS_CATEGORY + compressed_3_1 + compressed_3_2 + compressed_3_3, data=treated)
 
 bias <- predict(mu_hat_0, treated) - predict(mu_hat_0, control)
 tau <-  mean(summarize.2$FIQ.1 - summarize.2$FIQ.0)
